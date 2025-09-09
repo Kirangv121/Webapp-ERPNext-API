@@ -1,0 +1,20 @@
+{
+  "name": "erpnext-api-tester-backend",
+  "version": "1.0.0",
+  "description": "Backend server for ERPNext API Testing Tool",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^2.0.9"
+  },
+  "keywords": ["erpnext", "api", "testing", "backend", "express"],
+  "author": "",
+  "license": "MIT"
+}
+
