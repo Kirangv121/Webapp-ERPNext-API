@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CORS Test for ERPNext</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>CORS Test for ERPNext API</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: Basic Connection Test</h3>
+        <p>This will test if we can reach your ERPNext instance:</p>
+        <button onclick="testBasicConnection()">Test Basic Connection</button>
+        <div id="basicResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: CORS Test</h3>
+        <p>This will test if CORS is properly configured:</p>
+        <button onclick="testCORS()">Test CORS</button>
+        <div id="corsResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: API Authentication Test</h3>
+        <p>Enter your API credentials to test authentication:</p>
+        <input type="text" id="apiKey" placeholder="API Key" style="width: 200px; margin: 5px;">
+        <input type="password" id="apiSecret" placeholder="API Secret" style="width: 200px; margin: 5px;">
+        <button onclick="testAuth()">Test Authentication</button>
+        <div id="authResult"></div>
+    </div>
+
+    <script>
+        const baseURL = 'https://erpnext-kiran.m.erpnext.com';
+        
+        function showResult(elementId, success, message) {
+            const element = document.getElementById(elementId);
+            element.className = success ? 'success' : 'error';
+            element.innerHTML = `<pre>${message}</pre>`;
+        }
+        
+        async function testBasicConnection() {
+            try {
+                const response = await fetch(`${baseURL}/api/method/frappe.auth.get_logged_user`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    showResult('basicResult', true, `✅ Success! Status: ${response.status}\nResponse: ${await response.text()}`);
+                } else {
+                    showResult('basicResult', false, `❌ HTTP Error: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                showResult('basicResult', false, `❌ Network Error: ${error.message}`);
+            }
+        }
+        
+        async function testCORS() {
+            try {
+                const response = await fetch(`${baseURL}/api/method/frappe.desk.doctype.data_import_tool.data_import_tool.get_doctypes`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    showResult('corsResult', true, `✅ CORS Success! Status: ${response.status}\nResponse: ${await response.text()}`);
+                } else {
+                    showResult('corsResult', false, `❌ CORS Error: ${response.status} ${response.statusText}`);
+                }
+            } catch (error) {
+                if (error.message.includes('CORS')) {
+                    showResult('corsResult', false, `❌ CORS Policy Error: ${error.message}\n\nSolution: Enable CORS in ERPNext System Settings → API → Allowed Origins\nAdd: ${window.location.origin}`);
+                } else {
+                    showResult('corsResult', false, `❌ Error: ${error.message}`);
+                }
+            }
+        }
+        
+        async function testAuth() {
+            const apiKey = document.getElementById('apiKey').value;
+            const apiSecret = document.getElementById('apiSecret').value;
+            
+            if (!apiKey || !apiSecret) {
+                showResult('authResult', false, '❌ Please enter both API Key and Secret');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${baseURL}/api/method/frappe.auth.get_logged_user`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Authorization': `token ${apiKey}:${apiSecret}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult('authResult', true, `✅ Authentication Success!\nUser: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    showResult('authResult', false, `❌ Authentication Failed: ${response.status} ${response.statusText}\nResponse: ${await response.text()}`);
+                }
+            } catch (error) {
+                showResult('authResult', false, `❌ Error: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

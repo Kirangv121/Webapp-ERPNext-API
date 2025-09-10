@@ -1,0 +1,19 @@
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
+module.exports = function(app) {
+  app.use(
+    '/api',
+    createProxyMiddleware({
+      target: 'https://erpnext-kiran.m.erpnext.com',
+      changeOrigin: true,
+      secure: true,
+      logLevel: 'debug',
+      onError: function (err, req, res) {
+        console.log('Proxy Error:', err);
+      },
+      onProxyReq: function (proxyReq, req, res) {
+        console.log('Proxying request to:', proxyReq.path);
+      }
+    })
+  );
+};
